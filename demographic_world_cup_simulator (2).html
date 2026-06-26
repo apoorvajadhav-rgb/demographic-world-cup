@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demographic World Cup 2026 Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #051c11; /* Pitch green backdrop */
+            color: #f3f4f6;
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #04140a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #115e3b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #15803d;
+        }
+        /* Pulse gold glow effect for champion */
+        @keyframes golden-pulse {
+            0%, 100% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.2); }
+            50% { box-shadow: 0 0 30px rgba(245, 158, 11, 0.6); }
+        }
+        .champion-card {
+            animation: golden-pulse 3s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col overflow-x-hidden">
+
+    <header class="border-b border-emerald-800 bg-[#06241a]/95 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-emerald-600 text-white p-2.5 rounded-xl shadow-lg shadow-emerald-500/20">
+                    <i class="fa-solid fa-trophy text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-black tracking-tight text-white flex items-center gap-2">
+                        Demography Matters <span class="text-emerald-400">World Cup 2026</span>
+                    </h1>
+                    <p class="text-xs text-emerald-300/80">Interactive 48-Country Head-to-Head Points Bracket</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2 bg-[#03140f] p-1 rounded-xl border border-emerald-900">
+                <button id="tab-groups-btn" class="px-4 py-2 text-xs font-semibold rounded-lg bg-emerald-600 text-white transition-all shadow-md">
+                    <i class="fa-solid fa-users-rectangle mr-2"></i>Group Stage
+                </button>
+                <button id="tab-bracket-btn" class="px-4 py-2 text-xs font-semibold rounded-lg text-emerald-400 hover:text-white transition-all">
+                    <i class="fa-solid fa-diagram-project mr-2"></i>Knockout Bracket
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-6">
+        
+        <!-- Sidebar Controls & Analysis (Left Column) -->
+        <section class="w-full lg:w-96 shrink-0 flex flex-col gap-6">
+            
+            <!-- Strategic Indicators Panel -->
+            <div class="bg-[#06241a] border border-emerald-800 rounded-2xl p-5 shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-emerald-400"></i> Active Match Panel
+                    </h2>
+                    <button id="reset-indicators-btn" class="text-xs text-emerald-400 hover:text-emerald-300 transition" title="Reset Panel">
+                        <i class="fa-solid fa-rotate-left"></i> Reset
+                    </button>
+                </div>
+                <p class="text-xs text-emerald-300/60 mb-5 leading-relaxed">
+                    Toggle indicators to exclude them from matches. Adjust sliders to determine the point value (weight) won for each head-to-head indicator duel.
+                </p>
+
+                <!-- Indicator Controls List -->
+                <div class="space-y-4">
+                    <!-- U5MR -->
+                    <div class="p-3 rounded-xl bg-[#03140f] border border-emerald-900/60">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-emerald-100">
+                                <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>
+                                <input type="checkbox" id="toggle-u5m" checked class="rounded border-emerald-800 text-emerald-600 bg-emerald-950 focus:ring-emerald-500">
+                                <span>Under-5 Mort (U5M)</span>
+                            </label>
+                            <span id="weight-u5m-val" class="text-xs font-mono font-bold text-emerald-400">1x</span>
+                        </div>
+                        <input type="range" id="weight-u5m" min="1" max="5" value="1" class="w-full accent-emerald-500 bg-emerald-950 h-1.5 rounded-lg appearance-none cursor-pointer">
+                    </div>
+
+                    <!-- MMR -->
+                    <div class="p-3 rounded-xl bg-[#03140f] border border-emerald-900/60">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-emerald-100">
+                                <span class="w-2.5 h-2.5 rounded-full bg-pink-500 inline-block"></span>
+                                <input type="checkbox" id="toggle-mmr" checked class="rounded border-emerald-800 text-emerald-600 bg-emerald-950 focus:ring-emerald-500">
+                                <span>Maternal Mort (MMR)</span>
+                            </label>
+                            <span id="weight-mmr-val" class="text-xs font-mono font-bold text-emerald-400">1x</span>
+                        </div>
+                        <input type="range" id="weight-mmr" min="1" max="5" value="1" class="w-full accent-emerald-500 bg-emerald-950 h-1.5 rounded-lg appearance-none cursor-pointer">
+                    </div>
+
+                    <!-- HDI -->
+                    <div class="p-3 rounded-xl bg-[#03140f] border border-emerald-900/60">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-emerald-100">
+                                <span class="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block"></span>
+                                <input type="checkbox" id="toggle-hdi" checked class="rounded border-emerald-800 text-emerald-600 bg-emerald-950 focus:ring-emerald-500">
+                                <span>Human Dev Index (HDI)</span>
+                            </label>
+                            <span id="weight-hdi-val" class="text-xs font-mono font-bold text-emerald-400">1x</span>
+                        </div>
+                        <input type="range" id="weight-hdi" min="1" max="5" value="1" class="w-full accent-emerald-500 bg-emerald-950 h-1.5 rounded-lg appearance-none cursor-pointer">
+                    </div>
+
+                    <!-- TFR -->
+                    <div class="p-3 rounded-xl bg-[#03140f] border border-emerald-900/60">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-emerald-100">
+                                <span class="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span>
+                                <input type="checkbox" id="toggle-tfr" checked class="rounded border-emerald-800 text-emerald-600 bg-emerald-950 focus:ring-emerald-500">
+                                <span>Fertility (TFR to 2.1)</span>
+                            </label>
+                            <span id="weight-tfr-val" class="text-xs font-mono font-bold text-emerald-400">1x</span>
+                        </div>
+                        <input type="range" id="weight-tfr" min="1" max="5" value="1" class="w-full accent-emerald-500 bg-emerald-950 h-1.5 rounded-lg appearance-none cursor-pointer">
+                    </div>
+
+                    <!-- NMR -->
+                    <div class="p-3 rounded-xl bg-[#03140f] border border-emerald-900/60">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-emerald-100">
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>
+                                <input type="checkbox" id="toggle-nmr" checked class="rounded border-emerald-800 text-emerald-600 bg-emerald-950 focus:ring-emerald-500">
+                                <span>Net Migration (NMR)</span>
+                            </label>
+                            <span id="weight-nmr-val" class="text-xs font-mono font-bold text-emerald-400">1x</span>
+                        </div>
+                        <input type="range" id="weight-nmr" min="1" max="5" value="1" class="w-full accent-emerald-500 bg-emerald-950 h-1.5 rounded-lg appearance-none cursor-pointer">
+                    </div>
+
+                    <!-- TDR -->
+                    <div class="p-3 rounded-xl bg-[#03140f] border border-emerald-900/60">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-emerald-100">
+                                <span class="w-2.5 h-2.5 rounded-full bg-purple-500 inline-block"></span>
+                                <input type="checkbox" id="toggle-tdr" checked class="rounded border-emerald-800 text-emerald-600 bg-emerald-950 focus:ring-emerald-500">
+                                <span>Dependency Ratio (TDR)</span>
+                            </label>
+                            <span id="weight-tdr-val" class="text-xs font-mono font-bold text-emerald-400">1x</span>
+                        </div>
+                        <input type="range" id="weight-tdr" min="1" max="5" value="1" class="w-full accent-emerald-500 bg-emerald-950 h-1.5 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Tournament Summary -->
+            <div class="bg-gradient-to-br from-emerald-950 to-[#06241a] border border-emerald-700/30 rounded-2xl p-5 shadow-xl relative overflow-hidden champion-card">
+                <div class="absolute -right-8 -bottom-8 text-emerald-800/10 text-8xl font-black">🏆</div>
+                <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 mb-3">
+                    <i class="fa-solid fa-crown text-amber-400"></i> Demographic Summary
+                </h2>
+                <div class="mb-4">
+                    <p class="text-xs text-emerald-300/70">Simulation Champion:</p>
+                    <div class="flex items-center gap-3 mt-1.5">
+                        <span id="champion-flag" class="text-3xl">🇯🇵</span>
+                        <div>
+                            <h3 id="champion-name" class="text-lg font-black text-white leading-tight">Japan</h3>
+                            <p class="text-xs text-amber-400 font-semibold">World Demographic Cup Winner</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="border-t border-emerald-900/80 pt-3">
+                    <h4 class="text-xs font-bold text-emerald-200 mb-1">Analytical Narrative:</h4>
+                    <p id="analysis-summary" class="text-xs text-emerald-300/70 leading-relaxed">
+                        Adjust active sliders to see how custom indicator weights rearrange the tournament bracket.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Interactive Country Inspector -->
+            <div class="bg-[#06241a] border border-emerald-800 rounded-2xl p-5 shadow-xl">
+                <h2 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 mb-3">
+                    <i class="fa-solid fa-magnifying-glass-chart text-emerald-400"></i> Dossier Inspector
+                </h2>
+                <select id="inspector-select" class="w-full bg-[#03140f] border border-emerald-800 rounded-lg p-2 text-xs font-semibold text-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <!-- Dynamic Option Rows -->
+                </select>
+                
+                <div id="inspector-stats" class="mt-4 space-y-3">
+                    <div class="grid grid-cols-2 gap-2 text-[11px]">
+                        <div class="bg-[#03140f] p-2.5 rounded-lg border border-emerald-900/60">
+                            <span class="text-emerald-400/60 block">Under-5 Mortality</span>
+                            <strong id="inspector-u5m" class="text-red-400 text-sm">--</strong>
+                        </div>
+                        <div class="bg-[#03140f] p-2.5 rounded-lg border border-emerald-900/60">
+                            <span class="text-emerald-400/60 block">Maternal Mortality</span>
+                            <strong id="inspector-mmr" class="text-pink-400 text-sm">--</strong>
+                        </div>
+                        <div class="bg-[#03140f] p-2.5 rounded-lg border border-emerald-900/60">
+                            <span class="text-emerald-400/60 block">HDI Profile</span>
+                            <strong id="inspector-hdi" class="text-blue-400 text-sm">--</strong>
+                        </div>
+                        <div class="bg-[#03140f] p-2.5 rounded-lg border border-emerald-900/60">
+                            <span class="text-emerald-400/60 block">Fertility (TFR)</span>
+                            <strong id="inspector-tfr" class="text-sky-300 text-sm">--</strong>
+                        </div>
+                        <div class="bg-[#03140f] p-2.5 rounded-lg border border-emerald-900/60">
+                            <span class="text-emerald-400/60 block">Net Migration (NMR)</span>
+                            <strong id="inspector-nmr" class="text-amber-400 text-sm">--</strong>
+                        </div>
+                        <div class="bg-[#03140f] p-2.5 rounded-lg border border-emerald-900/60">
+                            <span class="text-emerald-400/60 block">Dependency Ratio</span>
+                            <strong id="inspector-tdr" class="text-purple-400 text-sm">--</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Display Pane -->
+        <section class="flex-grow min-w-0">
+            <!-- Group Stage View -->
+            <div id="view-groups" class="space-y-6">
+                <div class="bg-[#06241a] border border-emerald-800 rounded-2xl p-6 shadow-xl">
+                    <h2 class="text-lg font-extrabold text-white mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-users-rectangle text-emerald-400"></i> Group Stage Standings
+                    </h2>
+                    <p class="text-xs text-emerald-300/60 mb-6 leading-relaxed">
+                        Matches are simulated using active indicators. Winning an indicator awards its user-defined weight as match points. **3 points are awarded for a win, 1 point for a draw.** Tiebreakers prioritize: HDI, then U5MR, then Total Dependency Ratio (TDR).
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" id="groups-grid">
+                        <!-- Dynamic Group Tables -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Knockout Bracket View -->
+            <div id="view-bracket" class="hidden space-y-6">
+                <div class="bg-[#06241a] border border-emerald-800 rounded-2xl p-6 shadow-xl overflow-x-auto">
+                    <h2 class="text-lg font-extrabold text-white mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-diagram-project text-emerald-400"></i> Knockout Phase
+                    </h2>
+                    <p class="text-xs text-emerald-300/60 mb-6">
+                        Pips under each nation show which indicators they won during the head-to-head matchup. Click on any country card to inspect its demographic dossier.
+                    </p>
+                    
+                    <!-- Horizontally scrollable tournament tree -->
+                    <div class="flex items-start gap-8 min-w-[1200px] py-4">
+                        <!-- Round of 32 Column -->
+                        <div class="flex-1 space-y-4">
+                            <h3 class="text-center text-xs font-bold uppercase tracking-wider text-emerald-300 mb-2 border-b border-emerald-800 pb-1">Round of 32</h3>
+                            <div class="space-y-4" id="r32-container"></div>
+                        </div>
+
+                        <!-- Round of 16 Column -->
+                        <div class="flex-1 space-y-4 flex flex-col justify-around h-full pt-12">
+                            <h3 class="text-center text-xs font-bold uppercase tracking-wider text-emerald-300 mb-2 border-b border-emerald-800 pb-1">Round of 16</h3>
+                            <div class="space-y-16" id="r16-container"></div>
+                        </div>
+
+                        <!-- Quarterfinals -->
+                        <div class="flex-1 space-y-4 flex flex-col justify-around h-full pt-24">
+                            <h3 class="text-center text-xs font-bold uppercase tracking-wider text-emerald-300 mb-2 border-b border-emerald-800 pb-1">Quarterfinals</h3>
+                            <div class="space-y-36" id="qf-container"></div>
+                        </div>
+
+                        <!-- Semifinals -->
+                        <div class="flex-1 space-y-4 flex flex-col justify-around h-full pt-36">
+                            <h3 class="text-center text-xs font-bold uppercase tracking-wider text-emerald-300 mb-2 border-b border-emerald-800 pb-1">Semifinals</h3>
+                            <div class="space-y-[280px]" id="sf-container"></div>
+                        </div>
+
+                        <!-- Final -->
+                        <div class="flex-1 space-y-4 flex flex-col justify-center h-full pt-48">
+                            <h3 class="text-center text-xs font-bold uppercase tracking-wider text-amber-400 mb-2 border-b border-amber-800 pb-1">Final</h3>
+                            <div class="space-y-4" id="final-container"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // High fidelity database reflecting 48 countries' parameters from UN / WHO / UNDP
+        const COUNTRIES_DATA = [
+            // Group A
+            { name: "South Korea", flag: "🇰🇷", group: "A", u5m: 3.0, mmr: 8.0, hdi: 0.937, tfr: 0.72, nmr: 2.0, tdr: 40.0 },
+            { name: "Czech Republic", flag: "🇨🇿", group: "A", u5m: 3.0, mmr: 3.0, hdi: 0.915, tfr: 1.62, nmr: 2.2, tdr: 56.5 },
+            { name: "Mexico", flag: "🇲🇽", group: "A", u5m: 13.0, mmr: 59.0, hdi: 0.789, tfr: 1.82, nmr: -0.9, tdr: 48.0 },
+            { name: "South Africa", flag: "🇿🇦", group: "A", u5m: 33.0, mmr: 127.0, hdi: 0.741, tfr: 2.30, nmr: 1.5, tdr: 52.2 },
+            
+            // Group B
+            { name: "Switzerland", flag: "🇨🇭", group: "B", u5m: 4.0, mmr: 7.0, hdi: 0.970, tfr: 1.39, nmr: 5.5, tdr: 51.5 },
+            { name: "Canada", flag: "🇨🇦", group: "B", u5m: 5.0, mmr: 11.0, hdi: 0.939, tfr: 1.33, nmr: 6.8, tdr: 51.2 },
+            { name: "Bosnia & H.", flag: "🇧🇦", group: "B", u5m: 6.0, mmr: 6.0, hdi: 0.782, tfr: 1.25, nmr: -0.5, tdr: 48.5 },
+            { name: "Qatar", flag: "🇶🇦", group: "B", u5m: 6.0, mmr: 8.0, hdi: 0.875, tfr: 1.75, nmr: 4.5, tdr: 20.5 },
+
+            // Group C
+            { name: "Scotland", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", group: "C", u5m: 4.0, mmr: 10.0, hdi: 0.925, tfr: 1.30, nmr: 4.2, tdr: 53.0 },
+            { name: "Brazil", flag: "🇧🇷", group: "C", u5m: 14.0, mmr: 72.0, hdi: 0.786, tfr: 1.55, nmr: 0.0, tdr: 44.2 },
+            { name: "Morocco", flag: "🇲🇦", group: "C", u5m: 18.0, mmr: 72.0, hdi: 0.698, tfr: 2.25, nmr: -1.1, tdr: 51.0 },
+            { name: "Haiti", flag: "🇭🇹", group: "C", u5m: 58.0, mmr: 350.0, hdi: 0.535, tfr: 2.80, nmr: -2.5, tdr: 59.8 },
+
+            // Group D
+            { name: "Australia", flag: "🇦🇺", group: "D", u5m: 4.0, mmr: 3.0, hdi: 0.958, tfr: 1.58, nmr: 6.2, tdr: 54.0 },
+            { name: "USA", flag: "🇺🇸", group: "D", u5m: 6.0, mmr: 21.0, hdi: 0.938, tfr: 1.66, nmr: 3.0, tdr: 54.5 },
+            { name: "Turkey", flag: "🇹🇷", group: "D", u5m: 10.0, mmr: 17.0, hdi: 0.853, tfr: 1.51, nmr: -0.5, tdr: 46.2 },
+            { name: "Paraguay", flag: "🇵🇾", group: "D", u5m: 19.0, mmr: 71.0, hdi: 0.731, tfr: 2.35, nmr: -0.8, tdr: 53.5 },
+
+            // Group E
+            { name: "Germany", flag: "🇩🇪", group: "E", u5m: 4.0, mmr: 4.0, hdi: 0.942, tfr: 1.53, nmr: 4.1, tdr: 55.4 },
+            { name: "Curaçao", flag: "🇨🇼", group: "E", u5m: 10.0, mmr: 25.0, hdi: 0.825, tfr: 1.70, nmr: -1.0, tdr: 52.0 },
+            { name: "Ecuador", flag: "🇪🇨", group: "E", u5m: 13.0, mmr: 66.0, hdi: 0.740, tfr: 2.05, nmr: -0.5, tdr: 54.0 },
+            { name: "Ivory Coast", flag: "🇨🇮", group: "E", u5m: 74.0, mmr: 480.0, hdi: 0.550, tfr: 4.50, nmr: 1.0, tdr: 82.0 },
+
+            // Group F
+            { name: "Japan", flag: "🇯🇵", group: "F", u5m: 2.0, mmr: 4.0, hdi: 0.925, tfr: 1.30, nmr: 0.5, tdr: 71.2 },
+            { name: "Sweden", flag: "🇸🇪", group: "F", u5m: 3.0, mmr: 5.0, hdi: 0.959, tfr: 1.52, nmr: 3.5, tdr: 61.2 },
+            { name: "Netherlands", flag: "🇳🇱", group: "F", u5m: 4.0, mmr: 4.0, hdi: 0.955, tfr: 1.49, nmr: 2.5, tdr: 55.6 },
+            { name: "Tunisia", flag: "🇹🇳", group: "F", u5m: 16.0, mmr: 37.0, hdi: 0.732, tfr: 1.90, nmr: -0.8, tdr: 49.5 },
+
+            // Group G
+            { name: "Belgium", flag: "🇧🇪", group: "G", u5m: 4.0, mmr: 5.0, hdi: 0.942, tfr: 1.55, nmr: 4.2, tdr: 57.0 },
+            { name: "New Zealand", flag: "🇳🇿", group: "G", u5m: 5.0, mmr: 7.0, hdi: 0.939, tfr: 1.65, nmr: 5.0, tdr: 54.2 },
+            { name: "Iran", flag: "🇮🇷", group: "G", u5m: 13.0, mmr: 22.0, hdi: 0.776, tfr: 1.68, nmr: -0.5, tdr: 44.5 },
+            { name: "Egypt", flag: "🇪🇬", group: "G", u5m: 19.0, mmr: 17.0, hdi: 0.728, tfr: 2.85, nmr: -0.4, tdr: 61.5 },
+
+            // Group H
+            { name: "Spain", flag: "🇪🇸", group: "H", u5m: 3.0, mmr: 3.0, hdi: 0.911, tfr: 1.16, nmr: 4.8, tdr: 54.0 },
+            { name: "Uruguay", flag: "🇺🇾", group: "H", u5m: 6.0, mmr: 19.0, hdi: 0.830, tfr: 1.50, nmr: 0.2, tdr: 55.0 },
+            { name: "Saudi Arabia", flag: "🇸🇦", group: "H", u5m: 7.0, mmr: 16.0, hdi: 0.875, tfr: 1.85, nmr: 2.1, tdr: 34.0 },
+            { name: "Cape Verde", flag: "🇨🇻", group: "H", u5m: 14.0, mmr: 42.0, hdi: 0.662, tfr: 2.10, nmr: -0.8, tdr: 48.0 },
+
+            // Group I
+            { name: "Norway", flag: "🇳🇴", group: "I", u5m: 2.0, mmr: 2.0, hdi: 0.966, tfr: 1.41, nmr: 4.5, tdr: 53.8 },
+            { name: "France", flag: "🇫🇷", group: "I", u5m: 4.0, mmr: 8.0, hdi: 0.910, tfr: 1.70, nmr: 1.2, tdr: 62.5 },
+            { name: "Iraq", flag: "🇮🇶", group: "I", u5m: 25.0, mmr: 76.0, hdi: 0.673, tfr: 3.30, nmr: -0.5, tdr: 70.0 },
+            { name: "Senegal", flag: "🇸🇳", group: "I", u5m: 38.0, mmr: 261.0, hdi: 0.512, tfr: 4.20, nmr: -1.0, tdr: 82.0 },
+
+            // Group J
+            { name: "Austria", flag: "🇦🇹", group: "J", u5m: 4.0, mmr: 5.0, hdi: 0.926, tfr: 1.41, nmr: 3.8, tdr: 51.5 },
+            { name: "Argentina", flag: "🇦🇷", group: "J", u5m: 9.0, mmr: 45.0, hdi: 0.849, tfr: 1.80, nmr: 0.1, tdr: 55.5 },
+            { name: "Jordan", flag: "🇯🇴", group: "J", u5m: 15.0, mmr: 41.0, hdi: 0.720, tfr: 2.65, nmr: 1.5, tdr: 58.0 },
+            { name: "Algeria", flag: "🇩🇿", group: "J", u5m: 22.0, mmr: 78.0, hdi: 0.745, tfr: 2.70, nmr: -0.8, tdr: 60.5 },
+
+            // Group K
+            { name: "Portugal", flag: "🇵🇹", group: "K", u5m: 3.0, mmr: 12.0, hdi: 0.874, tfr: 1.35, nmr: 3.2, tdr: 56.0 },
+            { name: "Colombia", flag: "🇨🇴", group: "K", u5m: 13.0, mmr: 75.0, hdi: 0.758, tfr: 1.65, nmr: -0.5, tdr: 45.2 },
+            { name: "Uzbekistan", flag: "🇺🇿", group: "K", u5m: 14.0, mmr: 30.0, hdi: 0.727, tfr: 2.50, nmr: -1.5, tdr: 51.2 },
+            { name: "DR Congo", flag: "🇨🇩", group: "K", u5m: 79.0, mmr: 547.0, hdi: 0.482, tfr: 5.80, nmr: -0.2, tdr: 97.0 },
+
+            // Group L
+            { name: "England", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", group: "L", u5m: 4.0, mmr: 10.0, hdi: 0.940, tfr: 1.55, nmr: 4.0, tdr: 57.2 },
+            { name: "Croatia", flag: "🇭🇷", group: "L", u5m: 5.0, mmr: 5.0, hdi: 0.867, tfr: 1.45, nmr: 1.5, tdr: 54.5 },
+            { name: "Panama", flag: "🇵🇦", group: "L", u5m: 15.0, mmr: 50.0, hdi: 0.820, tfr: 2.20, nmr: 0.5, tdr: 51.5 },
+            { name: "Ghana", flag: "🇬🇭", group: "L", u5m: 44.0, mmr: 263.0, hdi: 0.602, tfr: 3.40, nmr: -0.5, tdr: 68.0 }
+        ];
+
+        const GROUPS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
+
+        let indicators = {
+            u5m: { active: true, weight: 1 },
+            mmr: { active: true, weight: 1 },
+            hdi: { active: true, weight: 1 },
+            tfr: { active: true, weight: 1 },
+            nmr: { active: true, weight: 1 },
+            tdr: { active: true, weight: 1 }
+        };
+
+        /**
+         * STREAMING_CHUNK: Resolving head-to-head points panel based on active weights...
+         */
+        function playMatch(teamA, teamB) {
+            let scoreA = 0;
+            let scoreB = 0;
+            let pipsA = {};
+            let pipsB = {};
+
+            const evaluateIndicator = (key, valA, valB, lowerIsBetter) => {
+                if (!indicators[key].active) return;
+                const wt = indicators[key].weight;
+                
+                if (valA === valB) {
+                    scoreA += wt * 0.5;
+                    scoreB += wt * 0.5;
+                    pipsA[key] = true;
+                    pipsB[key] = true;
+                } else if (lowerIsBetter ? (valA < valB) : (valA > valB)) {
+                    scoreA += wt;
+                    pipsA[key] = true;
+                    pipsB[key] = false;
+                } else {
+                    scoreB += wt;
+                    pipsA[key] = false;
+                    pipsB[key] = true;
+                }
+            };
+
+            // Evaluate directional metrics
+            evaluateIndicator('u5m', teamA.u5m, teamB.u5m, true);
+            evaluateIndicator('mmr', teamA.mmr, teamB.mmr, true);
+            evaluateIndicator('hdi', teamA.hdi, teamB.hdi, false);
+            evaluateIndicator('nmr', teamA.nmr, teamB.nmr, false);
+            evaluateIndicator('tdr', teamA.tdr, teamB.tdr, true);
+
+            // Special evaluation for Total Fertility Rate (closest to 2.1 wins)
+            if (indicators.tfr.active) {
+                const wt = indicators.tfr.weight;
+                const diffA = Math.abs(teamA.tfr - 2.1);
+                const diffB = Math.abs(teamB.tfr - 2.1);
+                if (diffA === diffB) {
+                    scoreA += wt * 0.5;
+                    scoreB += wt * 0.5;
+                    pipsA.tfr = true;
+                    pipsB.tfr = true;
+                } else if (diffA < diffB) {
+                    scoreA += wt;
+                    pipsA.tfr = true;
+                    pipsB.tfr = false;
+                } else {
+                    scoreB += wt;
+                    pipsA.tfr = false;
+                    pipsB.tfr = true;
+                }
+            }
+
+            let tiebreakerUsed = null;
+            let finalWinner = null;
+
+            if (scoreA > scoreB) {
+                finalWinner = teamA;
+            } else if (scoreB > scoreA) {
+                finalWinner = teamB;
+            } else {
+                // TIEBREAKER 1: Human Development Index (higher wins)
+                if (teamA.hdi !== teamB.hdi) {
+                    finalWinner = teamA.hdi > teamB.hdi ? teamA : teamB;
+                    tiebreakerUsed = "HDI";
+                } 
+                // TIEBREAKER 2: Under-5 Mortality Rate (lower wins)
+                else if (teamA.u5m !== teamB.u5m) {
+                    finalWinner = teamA.u5m < teamB.u5m ? teamA : teamB;
+                    tiebreakerUsed = "U5M";
+                }
+                // TIEBREAKER 3: Total Dependency Ratio (lower wins)
+                else {
+                    finalWinner = teamA.tdr <= teamB.tdr ? teamA : teamB;
+                    tiebreakerUsed = "TDR";
+                }
+            }
+
+            return {
+                teamA,
+                teamB,
+                scoreA,
+                scoreB,
+                pipsA,
+                pipsB,
+                winner: finalWinner || teamA,
+                loser: finalWinner === teamA ? teamB : teamA,
+                wasTie: scoreA === scoreB,
+                tiebreakerUsed
+            };
+        }
+
+        /**
+         * STREAMING_CHUNK: Computing full group play simulations with 3pts for a win, 1pt for a draw...
+         */
+        function executeSimulation() {
+            const groupStandings = {};
+            const qualifiers = [];
+            const thirdPlaces = [];
+
+            // Simulate Round-Robin Group stage
+            GROUPS.forEach(groupName => {
+                const teams = COUNTRIES_DATA.filter(c => c.group === groupName).map(t => ({
+                    ...t,
+                    pts: 0,
+                    gd: 0, // indicator points difference
+                    gf: 0, // indicator points won
+                    ga: 0, // indicator points lost
+                    record: { w: 0, d: 0, l: 0 }
+                }));
+
+                const matchUps = [
+                    [0, 1], [0, 2], [0, 3],
+                    [1, 2], [1, 3],
+                    [2, 3]
+                ];
+
+                matchUps.forEach(([idxA, idxB]) => {
+                    const res = playMatch(teams[idxA], teams[idxB]);
+                    
+                    teams[idxA].gf += res.scoreA;
+                    teams[idxA].ga += res.scoreB;
+                    teams[idxB].gf += res.scoreB;
+                    teams[idxB].ga += res.scoreA;
+
+                    teams[idxA].gd += (res.scoreA - res.scoreB);
+                    teams[idxB].gd += (res.scoreB - res.scoreA);
+
+                    if (res.scoreA > res.scoreB) {
+                        teams[idxA].pts += 3;
+                        teams[idxA].record.w += 1;
+                        teams[idxB].record.l += 1;
+                    } else if (res.scoreB > res.scoreA) {
+                        teams[idxB].pts += 3;
+                        teams[idxB].record.w += 1;
+                        teams[idxA].record.l += 1;
+                    } else {
+                        // Draw matches get 1 point each
+                        teams[idxA].pts += 1;
+                        teams[idxB].pts += 1;
+                        teams[idxA].record.d += 1;
+                        teams[idxB].record.d += 1;
+                    }
+                });
+
+                // Sort standings by Match Points -> Point Diff -> Points Won -> HDI baseline
+                teams.sort((a, b) => {
+                    if (b.pts !== a.pts) return b.pts - a.pts;
+                    if (b.gd !== a.gd) return b.gd - a.gd;
+                    if (b.gf !== a.gf) return b.gf - a.gf;
+                    return b.hdi - a.hdi;
+                });
+
+                groupStandings[groupName] = teams;
+
+                // Top 2 advance
+                qualifiers.push(teams[0], teams[1]);
+                thirdPlaces.push(teams[2]);
+            });
+
+            // Select 8 best third-place teams across all groups
+            thirdPlaces.sort((a, b) => {
+                if (b.pts !== a.pts) return b.pts - a.pts;
+                if (b.gd !== a.gd) return b.gd - a.gd;
+                if (b.gf !== a.gf) return b.gf - a.gf;
+                return b.hdi - a.hdi;
+            });
+
+            const bestThirds = thirdPlaces.slice(0, 8);
+            const knockoutField = [...qualifiers, ...bestThirds];
+
+            // Render tables in UI
+            renderGroupsUI(groupStandings, bestThirds);
+
+            // Run single-elimination knockout matches
+            computeKnockoutRounds(knockoutField);
+        }
+
+        /**
+         * STREAMING_CHUNK: Simulating single-elimination tournament tree...
+         */
+        function computeKnockoutRounds(field) {
+            // Round of 32
+            const r32Matches = [];
+            for (let i = 0; i < 32; i += 2) {
+                const res = playMatch(field[i], field[i + 1] || field[i]);
+                r32Matches.push(res);
+            }
+
+            // Round of 16
+            const r16Matches = [];
+            const r16Teams = r32Matches.map(m => m.winner);
+            for (let i = 0; i < 16; i += 2) {
+                const res = playMatch(r16Teams[i], r16Teams[i + 1]);
+                r16Matches.push(res);
+            }
+
+            // Quarterfinals
+            const qfMatches = [];
+            const qfTeams = r16Matches.map(m => m.winner);
+            for (let i = 0; i < 8; i += 2) {
+                const res = playMatch(qfTeams[i], qfTeams[i + 1]);
+                qfMatches.push(res);
+            }
+
+            // Semifinals
+            const sfMatches = [];
+            const sfTeams = qfMatches.map(m => m.winner);
+            for (let i = 0; i < 4; i += 2) {
+                const res = playMatch(sfTeams[i], sfTeams[i + 1]);
+                sfMatches.push(res);
+            }
+
+            // Grand Final
+            const finalMatch = playMatch(sfMatches[0].winner, sfMatches[1].winner);
+            const champion = finalMatch.winner;
+            const runnerUp = finalMatch.loser;
+
+            // Render bracket visually
+            renderBracketUI(r32Matches, r16Matches, qfMatches, sfMatches, finalMatch);
+
+            // Update editorial summary text
+            updateAnalysisText(champion, runnerUp);
+        }
+
+        /**
+         * STREAMING_CHUNK: Styling group table standings and badges...
+         */
+        function renderGroupsUI(standings, bestThirds) {
+            const container = document.getElementById("groups-grid");
+            container.innerHTML = "";
+
+            GROUPS.forEach(groupName => {
+                const teams = standings[groupName];
+                const card = document.createElement("div");
+                card.className = "bg-[#06241a] rounded-xl p-4 border border-emerald-800 shadow-md";
+                
+                let rows = "";
+                teams.forEach((t, idx) => {
+                    const isQ = idx < 2;
+                    const is3rdQ = idx === 2 && bestThirds.some(bt => bt.name === t.name);
+                    
+                    let badge = "";
+                    if (isQ) badge = `<span class="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-emerald-500/20">Q</span>`;
+                    else if (is3rdQ) badge = `<span class="bg-amber-500/10 text-amber-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-amber-500/20">3rd-Q</span>`;
+                    else badge = `<span class="bg-red-500/10 text-red-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-red-500/20">Out</span>`;
+
+                    rows += `
+                        <tr class="hover:bg-emerald-950/40 cursor-pointer transition border-b border-emerald-950/60" onclick="inspectCountry('${t.name}')">
+                            <td class="py-2 px-1 text-xs text-emerald-500/60">${idx + 1}</td>
+                            <td class="py-2 px-2 text-xs font-semibold text-white">
+                                <span class="mr-1.5">${t.flag}</span>${t.name}
+                            </td>
+                            <td class="py-2 px-2 text-center text-xs font-mono text-emerald-300/80">
+                                ${t.record.w}-${t.record.d}-${t.record.l}
+                            </td>
+                            <td class="py-2 px-2 text-right text-xs font-mono font-bold text-emerald-200">
+                                ${t.pts}
+                            </td>
+                            <td class="py-2 px-1 text-right">${badge}</td>
+                        </tr>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-emerald-900 pb-2 mb-2">
+                        <h3 class="text-xs font-extrabold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i class="fa-solid fa-people-group"></i> Group ${groupName}
+                        </h3>
+                    </div>
+                    <table class="w-full">
+                        <thead>
+                            <tr class="text-[10px] uppercase tracking-wider text-emerald-400/50 text-left border-b border-[#03140f]">
+                                <th class="py-1">#</th>
+                                <th class="py-1 px-2">Squad</th>
+                                <th class="py-1 px-2 text-center">W-D-L</th>
+                                <th class="py-1 px-2 text-right">Pts</th>
+                                <th class="py-1 text-right">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows}
+                        </tbody>
+                    </table>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        /**
+         * STREAMING_CHUNK: Mapping bracket node cards with dynamic flag icons...
+         */
+        function renderBracketUI(r32, r16, qf, sf, finalMatch) {
+            const getMatchHtml = (match, index) => {
+                const activeInsp = document.getElementById("inspector-select")?.value;
+                const t1Active = match.teamA.name === activeInsp ? "ring-2 ring-emerald-500" : "";
+                const t2Active = match.teamB.name === activeInsp ? "ring-2 ring-emerald-500" : "";
+
+                const t1WinnerClass = match.winner === match.teamA ? "text-emerald-400 font-bold" : "text-emerald-300/60";
+                const t2WinnerClass = match.winner === match.teamB ? "text-emerald-400 font-bold" : "text-emerald-300/60";
+
+                // Render colored indicator pips (dots)
+                const renderPips = (pips) => {
+                    let html = `<div class="flex gap-1.5">`;
+                    const colors = {
+                        u5m: 'bg-red-500',
+                        mmr: 'bg-pink-500',
+                        hdi: 'bg-blue-500',
+                        tfr: 'bg-sky-400',
+                        nmr: 'bg-amber-500',
+                        tdr: 'bg-purple-500'
+                    };
+                    Object.keys(colors).forEach(key => {
+                        if (indicators[key].active) {
+                            const won = pips[key];
+                            const dotColor = won ? colors[key] : 'bg-[#03140f]';
+                            html += `<span class="w-2 h-2 rounded-full ${dotColor}" title="${key.toUpperCase()}: ${won ? 'Won' : 'Lost'}"></span>`;
+                        }
+                    });
+                    html += `</div>`;
+                    return html;
+                };
+
+                const scoreLabel = match.wasTie ? `${match.scoreA.toFixed(1)}-${match.scoreB.toFixed(1)} (${match.tiebreakerUsed} TB)` : `${match.scoreA.toFixed(1)}-${match.scoreB.toFixed(1)}`;
+
+                return `
+                    <div class="bg-[#03140f] p-3 rounded-xl border border-emerald-900/60 hover:border-emerald-800 transition shadow-lg space-y-2">
+                        <div class="flex items-center justify-between border-b border-emerald-950 pb-1.5">
+                            <span class="text-[9px] font-bold text-emerald-500/70 uppercase tracking-wider">Match #${index + 1}</span>
+                            <span class="text-[9px] font-bold text-emerald-400 uppercase tracking-wider">${scoreLabel}</span>
+                        </div>
+                        <div class="space-y-1.5">
+                            <!-- Team A Row -->
+                            <div class="flex items-center justify-between text-xs cursor-pointer rounded p-1 ${t1Active}" onclick="inspectCountry('${match.teamA.name}')">
+                                <div class="flex flex-col">
+                                    <span class="truncate flex items-center gap-1.5 ${t1WinnerClass}">
+                                        <span>${match.teamA.flag}</span> ${match.teamA.name}
+                                    </span>
+                                    <div class="mt-1">${renderPips(match.pipsA)}</div>
+                                </div>
+                            </div>
+                            <!-- Team B Row -->
+                            <div class="flex items-center justify-between text-xs cursor-pointer rounded p-1 ${t2Active}" onclick="inspectCountry('${match.teamB.name}')">
+                                <div class="flex flex-col">
+                                    <span class="truncate flex items-center gap-1.5 ${t2WinnerClass}">
+                                        <span>${match.teamB.flag}</span> ${match.teamB.name}
+                                    </span>
+                                    <div class="mt-1">${renderPips(match.pipsB)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            };
+
+            document.getElementById("r32-container").innerHTML = r32.map((m, i) => getMatchHtml(m, i)).join("");
+            document.getElementById("r16-container").innerHTML = r16.map((m, i) => getMatchHtml(m, i)).join("");
+            document.getElementById("qf-container").innerHTML = qf.map((m, i) => getMatchHtml(m, i)).join("");
+            document.getElementById("sf-container").innerHTML = sf.map((m, i) => getMatchHtml(m, i)).join("");
+            document.getElementById("final-container").innerHTML = getMatchHtml(finalMatch, 30);
+        }
+
+        /**
+         * STREAMING_CHUNK: Generating dynamic narrative summary reports...
+         */
+        function updateAnalysisText(champion, runnerUp) {
+            document.getElementById("champion-flag").textContent = champion.flag;
+            document.getElementById("champion-name").textContent = champion.name;
+
+            let activeCount = Object.keys(indicators).filter(k => indicators[k].active).length;
+
+            let summary = "";
+            if (champion.name === "Japan") {
+                summary = `<strong>Japan 🇯🇵</strong> takes the title! Under the hood, Japan's rock-solid health profiles (U5MR: 2.0, MMR: 4.0) give them critical early points. While their high dependency ratio (TDR: 71.2%) represents a structural hurdle, their elite developmental profile and low child mortality systematically out-pass opponents.`;
+            } else if (champion.name === "Sweden") {
+                summary = `<strong>Sweden 🇸🇪</strong> secures the ultimate victory. Sweden's exceptional balance of high-HDI scores and low childhood mortality offsets moderate dependency ratios, neutralizing older or highly volatile global hubs.`;
+            } else if (champion.name === "Canada") {
+                summary = `<strong>Canada 🇨🇦</strong> lifts the Demographic Cup! Its targeted point-based economic migration system acts like a powerhouse, effectively neutralizing domestic birth declines and lowering working-age dependency.`;
+            } else if (champion.name === "Norway") {
+                summary = `<strong>Norway 🇳🇴</strong> claims the crown, demonstrating the immense economic security and longevity power of high development baselines paired with top-tier health allocations.`;
+            } else {
+                summary = `With ${activeCount} active indicators evaluated, <strong>${champion.name} ${champion.flag}</strong> defeats <strong>${runnerUp.name} ${runnerUp.flag}</strong> in the Grand Final, navigating ties through strategic tiebreakers.`;
+            }
+
+            document.getElementById("analysis-summary").innerHTML = summary;
+        }
+
+        /**
+         * STREAMING_CHUNK: populating country dossier panel elements...
+         */
+        function inspectCountry(name) {
+            const country = COUNTRIES_DATA.find(c => c.name === name);
+            if (!country) return;
+
+            document.getElementById("inspector-select").value = name;
+            document.getElementById("inspector-u5m").textContent = `${country.u5m.toFixed(1)} /1k`;
+            document.getElementById("inspector-mmr").textContent = `${country.mmr.toFixed(1)} /100k`;
+            document.getElementById("inspector-hdi").textContent = country.hdi.toFixed(3);
+            document.getElementById("inspector-tfr").textContent = `${country.tfr.toFixed(2)} (Goal: 2.1)`;
+            document.getElementById("inspector-nmr").textContent = `${country.nmr > 0 ? '+' : ''}${country.nmr.toFixed(1)} /1k`;
+            document.getElementById("inspector-tdr").textContent = `${country.tdr.toFixed(1)}%`;
+        }
+
+        const bindControlUI = (key) => {
+            const toggle = document.getElementById(`toggle-${key}`);
+            const slider = document.getElementById(`weight-${key}`);
+            const valLabel = document.getElementById(`weight-${key}-val`);
+
+            toggle.addEventListener("change", (e) => {
+                indicators[key].active = e.target.checked;
+                executeSimulation();
+            });
+
+            slider.addEventListener("input", (e) => {
+                const val = parseInt(e.target.value);
+                indicators[key].weight = val;
+                valLabel.textContent = `${val}x`;
+                executeSimulation();
+            });
+        };
+
+        const listKeys = ["u5m", "mmr", "hdi", "tfr", "nmr", "tdr"];
+        listKeys.forEach(bindControlUI);
+
+        // Reset indicators back to standard baseline
+        document.getElementById("reset-indicators-btn").addEventListener("click", () => {
+            listKeys.forEach(key => {
+                const toggle = document.getElementById(`toggle-${key}`);
+                const slider = document.getElementById(`weight-${key}`);
+                const valLabel = document.getElementById(`weight-${key}-val`);
+
+                toggle.checked = true;
+                slider.value = 1;
+                valLabel.textContent = "1x";
+                
+                indicators[key].active = true;
+                indicators[key].weight = 1;
+            });
+            executeSimulation();
+        });
+
+        // Tab changes
+        document.getElementById("tab-groups-btn").addEventListener("click", () => {
+            document.getElementById("view-groups").classList.remove("hidden");
+            document.getElementById("view-bracket").classList.add("hidden");
+            document.getElementById("tab-groups-btn").className = "px-4 py-2 text-xs font-semibold rounded-lg bg-emerald-600 text-white transition-all shadow-md";
+            document.getElementById("tab-bracket-btn").className = "px-4 py-2 text-xs font-semibold rounded-lg text-emerald-400 hover:text-white transition-all";
+        });
+
+        document.getElementById("tab-bracket-btn").addEventListener("click", () => {
+            document.getElementById("view-groups").classList.add("hidden");
+            document.getElementById("view-bracket").classList.remove("hidden");
+            document.getElementById("tab-bracket-btn").className = "px-4 py-2 text-xs font-semibold rounded-lg bg-emerald-600 text-white transition-all shadow-md";
+            document.getElementById("tab-groups-btn").className = "px-4 py-2 text-xs font-semibold rounded-lg text-emerald-400 hover:text-white transition-all";
+        });
+
+        // Generate drop-down options inside inspect dropdown
+        const select = document.getElementById("inspector-select");
+        COUNTRIES_DATA.sort((a,b) => a.name.localeCompare(b.name)).forEach(c => {
+            const option = document.createElement("option");
+            option.value = c.name;
+            option.textContent = `${c.flag} ${c.name}`;
+            select.appendChild(option);
+        });
+
+        select.addEventListener("change", (e) => {
+            inspectCountry(e.target.value);
+        });
+
+        // Standard launcher setup
+        executeSimulation();
+        inspectCountry("Japan");
+    </script>
+</body>
+</html>
